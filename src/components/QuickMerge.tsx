@@ -23,16 +23,16 @@ export function QuickMerge({ users, suggestions, initialNames, canUndo, onMerge,
     if (!target || (names.includes(target) && !next.includes(target))) setTarget(next[0] || '');
   }
   function toggleName(name: string) { updateNames(selected.includes(name) ? selected.filter(item => item !== name) : [...selected, name]); }
-  function submitGroups(chosen: string[][]) {
+  function submitGroups(chosen: string[][], preferredName?: string) {
     if (!chosen.length) return;
-    if (onMerge(chosen.map(group => ({ names: group, target: group[0] })), true)) { setChosenGroups(new Set()); setNames([]); setTarget(''); }
+    if (onMerge(chosen.map(group => ({ names: group, target: preferredName && group.includes(preferredName) ? preferredName : group[0] })), true)) { setChosenGroups(new Set()); setNames([]); setTarget(''); }
   }
-  return <Dialog title="把不同的名字，归集到一起" subtitle="点一次确认相似名字，也可以多选分组批量合并。" onClose={onClose}>
-    <div className="notice warning"><Info size={16} /><span>相似不代表同一人。点「确认合并」即确认身份，默认保留该组内容最多的名字；不同组分别合并。</span></div>
+  return <Dialog title="把不同的名字，归集到一起" subtitle="直接点名字，即可确认合并并保留该名字；勾选可批量合并。" onClose={onClose}>
+    <div className="notice warning"><Info size={16} /><span>相似不代表同一人。点击名字即确认整组为同一人，并自动使用该名字；「确认合并」默认保留内容最多的名字。不同组分别合并，操作可撤销。</span></div>
     <section className="quick-merge-section">
       <div className="quick-section-head"><span><Sparkles size={15} />相似名称 <small>{groups.length} 组</small></span>{canUndo && <button className="text-button" onClick={onUndo}><RotateCcw size={13} />撤销上次</button>}</div>
       {groups.length > 0 ? <><div className="quick-group-list">{groups.map(group => <div className="quick-group" key={keyOf(group)}>
-        <label className="quick-group-pick"><input type="checkbox" aria-label={`选择相似组 ${group.join('、')}`} checked={chosenGroups.has(keyOf(group))} onChange={() => setChosenGroups(previous => { const next = new Set(previous); if (next.has(keyOf(group))) next.delete(keyOf(group)); else next.add(keyOf(group)); return next; })} /><span><strong>{group[0]}</strong><span className="quick-aliases">{group.slice(1).map(name => <span key={name}>{name}</span>)}</span><small>归集为 {group[0]}</small></span></label>
+        <div className="quick-group-pick"><label className="quick-group-checkbox"><input type="checkbox" aria-label={`选择相似组 ${group.join('、')}`} checked={chosenGroups.has(keyOf(group))} onChange={() => setChosenGroups(previous => { const next = new Set(previous); if (next.has(keyOf(group))) next.delete(keyOf(group)); else next.add(keyOf(group)); return next; })} /></label><span><button className="quick-name-merge" aria-label={`合并此组并保留 ${group[0]}`} onClick={() => submitGroups([group], group[0])}><strong>{group[0]}</strong></button><span className="quick-aliases">{group.slice(1).map(name => <button className="quick-name-merge" key={name} aria-label={`合并此组并保留 ${name}`} onClick={() => submitGroups([group], name)}>{name}</button>)}</span><small>点名字合并 · 勾选可多选</small></span></div>
         <div className="quick-group-actions"><button className="button button-primary button-small" aria-label={`确认合并相似组 ${group.join('、')}`} onClick={() => submitGroups([group])}><Check size={13} />确认合并</button><button className="text-button" onClick={() => { updateNames([...new Set([...selected, ...group])]); if (!target) setTarget(group[0]); }}>加入多选<Plus size={12} /></button></div>
       </div>)}</div><div className="quick-batch-bar"><button className="text-button" onClick={() => setChosenGroups(selectedGroups.length === groups.length ? new Set() : new Set(groups.map(keyOf)))}>{selectedGroups.length === groups.length ? '取消全选' : '全选相似组'}</button><button className="button button-primary button-small" disabled={!selectedGroups.length} onClick={() => submitGroups(selectedGroups)}>合并所选 {selectedGroups.length} 组<GitMerge size={13} /></button></div></> : <p className="quick-empty">暂无相似名称建议，可在下方搜索并多选任意用户。</p>}
     </section>

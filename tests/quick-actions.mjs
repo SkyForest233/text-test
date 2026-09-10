@@ -65,6 +65,15 @@ try {
     await page.waitForFunction(() => document.querySelector('.stat-value')?.textContent === '7份');
     await page.locator('.users-panel').getByRole('button', { name: '合并用户', exact: true }).click();
     assert.equal(await page.locator('.quick-group').count(), 3);
+    const nameChip = page.locator('.quick-group').first().locator('.quick-aliases button').first();
+    const retainedName = await nameChip.textContent();
+    await nameChip.click();
+    assert.equal(await page.locator('.quick-group').count(), 2);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('guiji-session-v1')).history.at(-1).target), retainedName);
+    assert.equal(await page.getByRole('dialog').count(), 1);
+    await page.getByRole('button', { name: '撤销上次', exact: true }).click();
+    assert.equal(await page.locator('.quick-group').count(), 3);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('guiji-session-v1')).history.length), 0);
     if (mobile) {
       assert.equal(await page.getByRole('dialog').evaluate(element => element.scrollWidth > element.clientWidth), false);
       await page.screenshot({ path: 'tests/quick-merge-mobile.png' });

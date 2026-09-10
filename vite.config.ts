@@ -18,6 +18,9 @@ export default defineConfig(async ({ mode }) => {
   }
 
   return {
+    // GitHub Pages 项目站部署在子路径下（如 /text-test/），资源必须带此前缀，
+    // 否则 JS/CSS 会请求到域名根目录而 404。如果改用自定义域名（根路径），改回 '/'。
+    base: '/text-test/',
     plugins,
     envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
     define: processEnvDefines,
